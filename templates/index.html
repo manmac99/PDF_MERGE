@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 합치기 - For Dong</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #3498db;
+        }
+
+        p, li {
+            line-height: 1.6;
+        }
+
+        a, button {
+            display: inline-block;
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            cursor: move;
+        }
+
+        #drop_zone {
+            border: 2px dashed #ccc;
+            padding: 10px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #3498db;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PDF 합치기 - For Dong</h1>
+    </header>
+
+    <section>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept="application/pdf" multiple>
+            <button type="submit">추가하기</button>
+        </form>
+    </section>
+
+    <section>
+        <div id="drop_zone">여기에 PDF 파일을 끌어오세요.</div>
+        <form id="mergeForm" action="/merge" method="post">
+            <h2>현재까지 추가된 PDF파일들</h2>
+            <ul class="file-list" id="fileList">
+                {% for file in files %}
+                    <li draggable="true">
+                        <input type="checkbox" name="files" value="{{ file }}" checked> {{ file }}
+                    </li>
+                {% endfor %}
+            </ul>
+            <input type="text" name="output_filename" placeholder="pdf파일의 이름을 입력해주세요.">
+            <button type="submit">합치기</button>
+        </form>
+        <form action="/reset" method="post">
+            <button type="submit">새로고침</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 PDF 합치기 - For Dong.</p>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('drop_zone');
+        const fileList = document.getElementById('fileList');
+        const uploadForm = document.getElementById('uploadForm');
+
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.style.borderColor = '#000';
+        });
+
+        dropZone.addEventListener('dragleave', (event) => {
+            dropZone.style.borderColor = '#ccc';
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+
+            const files = event.dataTransfer.files;
+            const formData = new FormData();
+
+            for (let i = 0; i < files.length; i++) {
+                if (!isFileInList(files[i].name)) {
+                    formData.append('file', files[i]);
+                }
+            }
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+              .then(data => {
+                  data.forEach(file => {
+                      if (!isFileInList(file)) {
+                          const li = document.createElement('li');
+                          li.setAttribute('draggable', 'true');
+                          li.innerHTML = `<input type="checkbox" name="files" value="${file}" checked> ${file}`;
+                          fileList.appendChild(li);
+                          addDragAndDropHandlers(li);
+                      }
+                  });
+              });
+        });
+
+        uploadForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(uploadForm);
+            const files = uploadForm.querySelector('input[type="file"]').files;
+
+            for (let i = 0; i < files.length; i++) {
+                if (!isFileInList(files[i].name)) {
+                    formData.append('file', files[i]);
+                }
+            }
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+              .then(data => {
+                  data.forEach(file => {
+                      if (!isFileInList(file)) {
+                          const li = document.createElement('li');
+                          li.setAttribute('draggable', 'true');
+                          li.innerHTML = `<input type="checkbox" name="files" value="${file}" checked> ${file}`;
+                          fileList.appendChild(li);
+                          addDragAndDropHandlers(li);
+                      }
+                  });
+              });
+        });
+
+        function isFileInList(fileName) {
+            const files = fileList.querySelectorAll('li input[type="checkbox"]');
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].value === fileName) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function addDragAndDropHandlers(li) {
+            li.addEventListener('dragstart', (event) => {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', event.target.innerHTML);
+                event.target.classList.add('dragging');
+            });
+
+            li.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+
+            li.addEventListener('drop', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const draggingElement = fileList.querySelector('.dragging');
+                draggingElement.classList.remove('dragging');
+
+                const allItems = [...fileList.querySelectorAll('li')];
+                const currentElementIndex = allItems.indexOf(event.target.closest('li'));
+
+                if (currentElementIndex !== -1) {
+                    fileList.insertBefore(draggingElement, allItems[currentElementIndex].nextSibling);
+                } else {
+                    fileList.appendChild(draggingElement);
+                }
+            });
+
+            li.addEventListener('dragend', (event) => {
+                event.target.classList.remove('dragging');
+            });
+        }
+
+        document.querySelectorAll('.file-list li').forEach(addDragAndDropHandlers);
+    </script>
+</body>
+</html>

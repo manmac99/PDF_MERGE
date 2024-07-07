@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 합치기 - For Dong</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        header {
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #3498db;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        a, button {
+            display: inline-block;
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #3498db;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PDF 합치기 - For Dong</h1>
+    </header>
+
+    <section>
+        <h2>PDF 파일이 완성되었습니다.</h2>
+        <a href="/download/{{ filename }}">다운로드</a>
+        <form action="/reset" method="post" style="display: inline;">
+            <button type="submit">새로운 pdf파일 합치기</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 PDF Merger.</p>
+    </footer>
+</body>
+</html>
